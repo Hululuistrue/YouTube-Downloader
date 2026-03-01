@@ -1,7 +1,7 @@
 {
   "name": "16-videodownloader",
   "version": "1.0.0",
-  "description": "MVP implementation for a compliant web-based YouTube downloader",
+  "description": "OmniDrop MVP implementation for a compliant web-based YouTube downloader",
   "main": "src/server.js",
   "scripts": {
     "dev": "node src/server.js",

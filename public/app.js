@@ -156,7 +156,7 @@ function t(key, vars = {}) {
   });
 }
 
-document.title = APP_LANG === "en" ? "VideoDownloader MVP" : "视频下载工具 MVP";
+document.title = "OmniDrop";
 
 function persistCookieFileId(value) {
   try {

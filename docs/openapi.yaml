@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: VideoDownloader Web API
+  title: OmniDrop Web API
   version: 1.0.0
   description: |
     API contract for a compliant web-based video downloader.

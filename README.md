@@ -1,6 +1,6 @@
-# YouTube Downloader (MVP)
+# OmniDrop (MVP)
 
-Web-based YouTube downloader MVP with real download pipeline:
+OmniDrop is a web-based YouTube downloader MVP with real download pipeline:
 - Express API
 - BullMQ queue + worker
 - PostgreSQL + Redis

@@ -1,0 +1,696 @@
+openapi: 3.0.3
+info:
+  title: VideoDownloader Web API
+  version: 1.0.0
+  description: |
+    API contract for a compliant web-based video downloader.
+    Scope is limited to user-owned or authorized content.
+servers:
+  - url: https://api.example.com
+    description: Production
+  - url: http://localhost:3000
+    description: Local development
+tags:
+  - name: Parse
+  - name: Tasks
+  - name: Cookies
+  - name: Complaints
+security:
+  - bearerAuth: []
+  - {}
+paths:
+  /api/v1/parse:
+    post:
+      tags: [Parse]
+      summary: Parse source URL and return metadata/formats
+      operationId: parseSourceUrl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParseRequest'
+      responses:
+        '200':
+          description: Parsed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParseResponse'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/v1/tasks:
+    post:
+      tags: [Tasks]
+      summary: Create an async download task
+      operationId: createTask
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: false
+          description: Recommended UUID to deduplicate retried requests
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '202':
+          description: Accepted and queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateTaskResponse'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+    get:
+      tags: [Tasks]
+      summary: List tasks
+      operationId: listTasks
+      parameters:
+        - $ref: '#/components/parameters/StatusQuery'
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PageSizeQuery'
+      responses:
+        '200':
+          description: Task list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskListResponse'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/v1/tasks/{taskId}:
+    get:
+      tags: [Tasks]
+      summary: Get task status and download info
+      operationId: getTask
+      parameters:
+        - $ref: '#/components/parameters/TaskIdPath'
+      responses:
+        '200':
+          description: Task detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/v1/tasks/{taskId}/retry:
+    post:
+      tags: [Tasks]
+      summary: Retry a failed task
+      operationId: retryTask
+      parameters:
+        - $ref: '#/components/parameters/TaskIdPath'
+      responses:
+        '202':
+          description: Retry accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetryTaskResponse'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/v1/tasks/{taskId}/cancel:
+    post:
+      tags: [Tasks]
+      summary: Cancel a queued/downloading/transcoding task
+      operationId: cancelTask
+      parameters:
+        - $ref: '#/components/parameters/TaskIdPath'
+      responses:
+        '200':
+          description: Cancel accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancelTaskResponse'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/v1/cookies:
+    get:
+      tags: [Cookies]
+      summary: List active cookie files for current user
+      operationId: listCookieFiles
+      responses:
+        '200':
+          description: Cookie file list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CookieFileListResponse'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+    post:
+      tags: [Cookies]
+      summary: Upload user cookie file (Netscape text or JSON export)
+      operationId: uploadCookieFile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [cookieFile]
+              properties:
+                cookieFile:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Cookie file uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CookieUploadResponse'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/v1/cookies/{cookieFileId}:
+    delete:
+      tags: [Cookies]
+      summary: Delete (deactivate) a cookie file
+      operationId: deleteCookieFile
+      parameters:
+        - in: path
+          name: cookieFileId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Cookie file deleted/deactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CookieDeleteResponse'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+  /api/v1/complaints:
+    post:
+      tags: [Complaints]
+      summary: Create a copyright complaint ticket
+      operationId: createComplaint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComplaintRequest'
+      responses:
+        '201':
+          description: Complaint created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplaintResponse'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    TaskIdPath:
+      in: path
+      name: taskId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    StatusQuery:
+      in: query
+      name: status
+      required: false
+      schema:
+        $ref: '#/components/schemas/TaskStatus'
+    PageQuery:
+      in: query
+      name: page
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSizeQuery:
+      in: query
+      name: pageSize
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  responses:
+    Error400:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Error401:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Error403:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Error404:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Error409:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Error429:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Error500:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    ParseRequest:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+          format: uri
+        cookieFileId:
+          type: string
+          format: uuid
+          nullable: true
+          example: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+
+    VideoFormat:
+      type: object
+      required: [id, container]
+      properties:
+        id:
+          type: string
+          example: 137+140
+        container:
+          type: string
+          example: mp4
+        quality:
+          type: string
+          nullable: true
+          example: 1080p
+        fps:
+          type: integer
+          nullable: true
+          example: 30
+        videoCodec:
+          type: string
+          nullable: true
+          example: avc1.640028
+        audioCodec:
+          type: string
+          nullable: true
+          example: mp4a.40.2
+        hasVideo:
+          type: boolean
+          example: true
+        hasAudio:
+          type: boolean
+          example: true
+        audioBitrate:
+          type: string
+          nullable: true
+          example: 128k
+        estimatedFileSize:
+          type: integer
+          format: int64
+          nullable: true
+          example: 125000000
+
+    ParseResponse:
+      type: object
+      required: [videoId, title, durationSeconds, thumbnail, formats]
+      properties:
+        videoId:
+          type: string
+          example: dQw4w9WgXcQ
+        title:
+          type: string
+        durationSeconds:
+          type: integer
+          example: 213
+        thumbnail:
+          type: string
+          format: uri
+        formats:
+          type: array
+          items:
+            $ref: '#/components/schemas/VideoFormat'
+
+    CreateTaskRequest:
+      type: object
+      required: [url, outputType, rightsConfirmed]
+      properties:
+        url:
+          type: string
+          format: uri
+        outputType:
+          type: string
+          enum: [mp4, mp3]
+        formatId:
+          type: string
+          nullable: true
+          description: Optional exact yt-dlp format id. If provided, worker downloads this exact stream first.
+          example: 137
+        quality:
+          type: string
+          nullable: true
+          example: 720p
+        audioBitrate:
+          type: string
+          nullable: true
+          example: 192k
+        rightsConfirmed:
+          type: boolean
+          description: Must be true to proceed
+          example: true
+        cookieFileId:
+          type: string
+          format: uuid
+          nullable: true
+
+    CreateTaskResponse:
+      type: object
+      required: [taskId, status]
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+
+    TaskStatus:
+      type: string
+      enum:
+        - queued
+        - downloading
+        - transcoding
+        - uploading
+        - success
+        - failed
+        - canceled
+        - expired
+
+    TaskResponse:
+      type: object
+      required: [taskId, status, progress, createdAt, updatedAt]
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        formatId:
+          type: string
+          nullable: true
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        errorCode:
+          type: string
+          nullable: true
+          enum:
+            - UNSUPPORTED_URL
+            - VIDEO_UNAVAILABLE
+            - FORMAT_NOT_AVAILABLE
+            - QUOTA_EXCEEDED
+            - CONCURRENCY_LIMITED
+            - TRANSCODE_FAILED
+            - STORAGE_UPLOAD_FAILED
+            - INTERNAL_ERROR
+        errorMessage:
+          type: string
+          nullable: true
+        cookieFileId:
+          type: string
+          format: uuid
+          nullable: true
+        downloadUrl:
+          type: string
+          format: uri
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    TaskListResponse:
+      type: object
+      required: [items, page, pageSize, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskResponse'
+        page:
+          type: integer
+          minimum: 1
+        pageSize:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+
+    RetryTaskResponse:
+      type: object
+      required: [taskId, status, retryCount]
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        retryCount:
+          type: integer
+          minimum: 1
+          maximum: 2
+
+    CancelTaskResponse:
+      type: object
+      required: [taskId, status, alreadyCanceled]
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        alreadyCanceled:
+          type: boolean
+
+    CookieUploadResponse:
+      type: object
+      required: [cookieFileId, fileName, createdAt]
+      properties:
+        cookieFileId:
+          type: string
+          format: uuid
+        fileName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    CookieFile:
+      type: object
+      required: [cookieFileId, fileName, isActive, createdAt, updatedAt]
+      properties:
+        cookieFileId:
+          type: string
+          format: uuid
+        fileName:
+          type: string
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        lastUsedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    CookieFileListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CookieFile'
+
+    CookieDeleteResponse:
+      type: object
+      required: [cookieFileId, deleted]
+      properties:
+        cookieFileId:
+          type: string
+          format: uuid
+        deleted:
+          type: boolean
+
+    ComplaintRequest:
+      type: object
+      required: [url, reason, contact]
+      properties:
+        taskId:
+          type: string
+          format: uuid
+          nullable: true
+        url:
+          type: string
+          format: uri
+        reason:
+          type: string
+          minLength: 5
+          maxLength: 2000
+        contact:
+          type: string
+          minLength: 5
+          maxLength: 320
+          description: Email or other contact detail
+
+    ComplaintResponse:
+      type: object
+      required: [ticketId, status, createdAt]
+      properties:
+        ticketId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [open]
+        createdAt:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      required: [errorCode, message, requestId]
+      properties:
+        errorCode:
+          type: string
+          example: QUOTA_EXCEEDED
+        message:
+          type: string
+          example: Daily quota exceeded
+        requestId:
+          type: string
+          example: req_01J7R5Z0S4H5PFK4PEQ8D4V3AS
+        details:
+          type: object
+          additionalProperties: true

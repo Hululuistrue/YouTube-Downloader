@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VideoDownloader MVP</title>
+    <style>
+      :root {
+        --bg: #f5f7fb;
+        --panel: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --primary: #0f766e;
+        --danger: #b91c1c;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+        background: linear-gradient(120deg, #f8fafc, #eef2ff);
+        color: var(--text);
+      }
+      .wrap {
+        width: min(1120px, 94vw);
+        margin: 36px auto;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .card {
+        background: var(--panel);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
+        border: 1px solid #e5e7eb;
+      }
+      h1 { margin: 0 0 8px; font-size: 28px; }
+      h2 { margin: 0 0 6px; font-size: 20px; }
+      p { margin: 0 0 16px; color: var(--muted); }
+      .section-head {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .section-no {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #ecfeff;
+        color: #0f766e;
+        border: 1px solid #99f6e4;
+        font-weight: 700;
+      }
+      .section-sub {
+        color: var(--muted);
+        margin: 0 0 12px;
+        font-size: 13px;
+      }
+      .full {
+        grid-column: 1 / -1;
+      }
+      label { display: block; font-weight: 600; margin-bottom: 6px; }
+      input, select, button, textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        font-size: 14px;
+      }
+      button {
+        background: var(--primary);
+        color: #fff;
+        border: 0;
+        cursor: pointer;
+      }
+      button.secondary {
+        background: #1f2937;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 180px;
+        gap: 12px;
+      }
+      .inline {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .row > * { flex: 1; }
+      .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 13px;
+        background: #f3f4f6;
+        border-radius: 8px;
+        padding: 8px 10px;
+      }
+      .error { color: var(--danger); }
+      .ok { color: #065f46; }
+      .hidden { display: none; }
+      .formats li { margin-bottom: 4px; }
+      .footer {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .cookie-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 8px;
+        background: #fff;
+      }
+      .cookie-meta {
+        flex: 1;
+        min-width: 0;
+      }
+      .cookie-actions {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .btn-mini {
+        width: auto;
+        padding: 6px 10px;
+        font-size: 12px;
+        border-radius: 8px;
+      }
+      .btn-danger {
+        background: #b91c1c;
+      }
+      .task-stage {
+        margin-top: 4px;
+        font-size: 12px;
+        color: #334155;
+      }
+      .task-stage-detail {
+        margin-top: 2px;
+        font-size: 12px;
+        color: #6b7280;
+      }
+      .task-progress {
+        margin-top: 6px;
+        height: 8px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        overflow: hidden;
+      }
+      .task-progress-fill {
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, #0f766e, #14b8a6);
+        transition: width 0.35s ease;
+      }
+      .task-progress-label {
+        margin-top: 4px;
+        font-size: 12px;
+        color: #0f766e;
+      }
+      .lang-switch {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .lang-switch a {
+        color: #0f766e;
+        text-decoration: none;
+      }
+      @media (max-width: 760px) {
+        .layout { grid-template-columns: 1fr; }
+        .grid, .inline { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="row" style="margin-bottom:10px;">
+        <div class="lang-switch">Language: <a href="/index.html">中文</a> | <strong>English</strong></div>
+      </div>
+      <div class="card" style="margin-bottom:16px;">
+        <h1>VideoDownloader MVP</h1>
+        <p>Only download content that you own or are authorized to use.</p>
+      </div>
+
+      <div class="layout">
+        <div class="card">
+          <div class="section-head">
+            <span class="section-no">1</span>
+            <h2>Video URL Input</h2>
+          </div>
+          <p class="section-sub">Paste a YouTube URL and parse metadata/formats.</p>
+          <div class="grid">
+            <input id="urlInput" placeholder="Paste YouTube URL, e.g. https://www.youtube.com/watch?v=..." />
+            <button id="parseBtn">Parse URL</button>
+          </div>
+          <div id="parseResult" class="hidden" style="margin-top: 12px;">
+            <div class="mono" id="metaBlock"></div>
+            <ul id="formatList" class="formats"></ul>
+          </div>
+          <div id="parseError" class="error"></div>
+        </div>
+
+        <div class="card">
+          <div class="section-head">
+            <span class="section-no">2</span>
+            <h2>Cookies Upload & Management</h2>
+          </div>
+          <p class="section-sub">Upload cookie files, switch active file, delete old files.</p>
+          <label>Upload Cookies (Netscape cookies.txt / JSON export)</label>
+          <input id="cookieFileInput" type="file" accept=".txt,.cookies,.json" />
+          <div class="row" style="margin-top: 8px;">
+            <button id="uploadCookieBtn" type="button">Upload Cookies</button>
+            <button id="clearCookieBtn" class="secondary" type="button">Clear Cookies</button>
+          </div>
+          <div class="row" style="margin-top: 8px;">
+            <button id="refreshCookieListBtn" class="secondary" type="button">Refresh Cookie List</button>
+          </div>
+          <div id="cookieUploadMsg" style="margin-top: 8px;"></div>
+          <div id="cookieFileIdBox" class="mono hidden" style="margin-top: 8px;"></div>
+          <div id="cookieList" style="margin-top: 8px;"></div>
+        </div>
+
+        <div class="card">
+          <div class="section-head">
+            <span class="section-no">3</span>
+            <h2>Format Selection & Task Creation</h2>
+          </div>
+          <p class="section-sub">Choose output parameters and create download task.</p>
+          <label>Output Parameters</label>
+          <div class="inline">
+            <select id="outputType">
+              <option value="mp4">MP4</option>
+              <option value="mp3">MP3</option>
+            </select>
+            <select id="qualityInput">
+              <option value="720p">720p</option>
+            </select>
+            <select id="bitrateInput">
+              <option value="192k">192k</option>
+            </select>
+          </div>
+          <div class="row" style="margin-top: 8px;">
+            <select id="formatIdInput">
+              <option value="">Auto select by quality/bitrate</option>
+            </select>
+          </div>
+          <div id="formatSelectHint" class="footer" style="margin-top: 8px;">
+            Parse a URL first. Quality and bitrate options will be filled from parsed formats.
+          </div>
+          <div class="row" style="margin-top: 10px;">
+            <label style="font-weight: 500;">
+              <input type="checkbox" id="rightsConfirmed" checked style="width:auto; margin-right:6px;" />
+              I confirm I own or am authorized to download this content
+            </label>
+          </div>
+          <div class="row" style="margin-top: 10px;">
+            <button id="createBtn">Create Download Task</button>
+          </div>
+          <div id="taskCreateMsg" style="margin-top: 10px;"></div>
+        </div>
+
+        <div class="card full">
+          <div class="section-head">
+            <span class="section-no">4</span>
+            <h2>Task Progress</h2>
+          </div>
+          <p class="section-sub">Track status, progress, errors and download links.</p>
+          <div class="row" style="margin-top: 8px; margin-bottom: 10px;">
+            <button id="listBtn" class="secondary">Refresh Task Progress</button>
+          </div>
+          <div id="taskList"></div>
+        </div>
+      </div>
+
+      <div class="footer" style="margin-top:14px;">
+        Copyright complaint API: POST /api/v1/complaints
+      </div>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

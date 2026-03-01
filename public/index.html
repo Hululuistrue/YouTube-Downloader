@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VideoDownloader MVP</title>
+    <style>
+      :root {
+        --bg: #f5f7fb;
+        --panel: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --primary: #0f766e;
+        --danger: #b91c1c;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+        background: linear-gradient(120deg, #f8fafc, #eef2ff);
+        color: var(--text);
+      }
+      .wrap {
+        width: min(1120px, 94vw);
+        margin: 36px auto;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .card {
+        background: var(--panel);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
+        border: 1px solid #e5e7eb;
+      }
+      h1 { margin: 0 0 8px; font-size: 28px; }
+      h2 { margin: 0 0 6px; font-size: 20px; }
+      p { margin: 0 0 16px; color: var(--muted); }
+      .section-head {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .section-no {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #ecfeff;
+        color: #0f766e;
+        border: 1px solid #99f6e4;
+        font-weight: 700;
+      }
+      .section-sub {
+        color: var(--muted);
+        margin: 0 0 12px;
+        font-size: 13px;
+      }
+      .full {
+        grid-column: 1 / -1;
+      }
+      label { display: block; font-weight: 600; margin-bottom: 6px; }
+      input, select, button, textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        font-size: 14px;
+      }
+      button {
+        background: var(--primary);
+        color: #fff;
+        border: 0;
+        cursor: pointer;
+      }
+      button.secondary {
+        background: #1f2937;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 180px;
+        gap: 12px;
+      }
+      .inline {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .row > * { flex: 1; }
+      .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 13px;
+        background: #f3f4f6;
+        border-radius: 8px;
+        padding: 8px 10px;
+      }
+      .error { color: var(--danger); }
+      .ok { color: #065f46; }
+      .hidden { display: none; }
+      .formats li { margin-bottom: 4px; }
+      .footer {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .cookie-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 8px;
+        background: #fff;
+      }
+      .cookie-meta {
+        flex: 1;
+        min-width: 0;
+      }
+      .cookie-actions {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .btn-mini {
+        width: auto;
+        padding: 6px 10px;
+        font-size: 12px;
+        border-radius: 8px;
+      }
+      .btn-danger {
+        background: #b91c1c;
+      }
+      .task-stage {
+        margin-top: 4px;
+        font-size: 12px;
+        color: #334155;
+      }
+      .task-stage-detail {
+        margin-top: 2px;
+        font-size: 12px;
+        color: #6b7280;
+      }
+      .task-progress {
+        margin-top: 6px;
+        height: 8px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        overflow: hidden;
+      }
+      .task-progress-fill {
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, #0f766e, #14b8a6);
+        transition: width 0.35s ease;
+      }
+      .task-progress-label {
+        margin-top: 4px;
+        font-size: 12px;
+        color: #0f766e;
+      }
+      .lang-switch {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .lang-switch a {
+        color: #0f766e;
+        text-decoration: none;
+      }
+      @media (max-width: 760px) {
+        .layout { grid-template-columns: 1fr; }
+        .grid, .inline { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="row" style="margin-bottom:10px;">
+        <div class="lang-switch">语言: <strong>中文</strong> | <a href="/en.html">English</a></div>
+      </div>
+      <div class="card" style="margin-bottom:16px;">
+        <h1>VideoDownloader MVP</h1>
+        <p>仅支持下载你拥有版权或已获授权的内容。</p>
+      </div>
+
+      <div class="layout">
+        <div class="card">
+          <div class="section-head">
+            <span class="section-no">1</span>
+            <h2>视频链接输入区</h2>
+          </div>
+          <p class="section-sub">输入 YouTube 链接并解析视频基础信息。</p>
+          <div class="grid">
+            <input id="urlInput" placeholder="粘贴 YouTube 链接，例如 https://www.youtube.com/watch?v=..." />
+            <button id="parseBtn">解析链接</button>
+          </div>
+          <div id="parseResult" class="hidden" style="margin-top: 12px;">
+            <div class="mono" id="metaBlock"></div>
+            <ul id="formatList" class="formats"></ul>
+          </div>
+          <div id="parseError" class="error"></div>
+        </div>
+
+        <div class="card">
+          <div class="section-head">
+            <span class="section-no">2</span>
+            <h2>Cookies 文件上传和管理区</h2>
+          </div>
+          <p class="section-sub">上传 cookies、切换当前生效项、删除旧文件。</p>
+          <label>上传 Cookies（支持 Netscape cookies.txt / JSON 导出）</label>
+          <input id="cookieFileInput" type="file" accept=".txt,.cookies,.json" />
+          <div class="row" style="margin-top: 8px;">
+            <button id="uploadCookieBtn" type="button">上传 Cookies</button>
+            <button id="clearCookieBtn" class="secondary" type="button">清除 Cookies</button>
+          </div>
+          <div class="row" style="margin-top: 8px;">
+            <button id="refreshCookieListBtn" class="secondary" type="button">刷新 Cookies 列表</button>
+          </div>
+          <div id="cookieUploadMsg" style="margin-top: 8px;"></div>
+          <div id="cookieFileIdBox" class="mono hidden" style="margin-top: 8px;"></div>
+          <div id="cookieList" style="margin-top: 8px;"></div>
+        </div>
+
+        <div class="card">
+          <div class="section-head">
+            <span class="section-no">3</span>
+            <h2>音视频格式选择区和任务创建区</h2>
+          </div>
+          <p class="section-sub">选择输出格式和质量后创建下载任务。</p>
+          <label>输出参数</label>
+          <div class="inline">
+            <select id="outputType">
+              <option value="mp4">MP4</option>
+              <option value="mp3">MP3</option>
+            </select>
+            <select id="qualityInput">
+              <option value="720p">720p</option>
+            </select>
+            <select id="bitrateInput">
+              <option value="192k">192k</option>
+            </select>
+          </div>
+          <div class="row" style="margin-top: 8px;">
+            <select id="formatIdInput">
+              <option value="">按质量/码率自动选择</option>
+            </select>
+          </div>
+          <div id="formatSelectHint" class="footer" style="margin-top: 8px;">
+            请先解析链接，系统会按解析结果填充可选质量/码率。
+          </div>
+          <div class="row" style="margin-top: 10px;">
+            <label style="font-weight: 500;">
+              <input type="checkbox" id="rightsConfirmed" checked style="width:auto; margin-right:6px;" />
+              我确认已获版权或授权
+            </label>
+          </div>
+          <div class="row" style="margin-top: 10px;">
+            <button id="createBtn">开始下载任务</button>
+          </div>
+          <div id="taskCreateMsg" style="margin-top: 10px;"></div>
+        </div>
+
+        <div class="card full">
+          <div class="section-head">
+            <span class="section-no">4</span>
+            <h2>任务下载进度区</h2>
+          </div>
+          <p class="section-sub">查看任务状态、进度、错误信息和下载链接。</p>
+          <div class="row" style="margin-top: 8px; margin-bottom: 10px;">
+            <button id="listBtn" class="secondary">刷新任务进度</button>
+          </div>
+          <div id="taskList"></div>
+        </div>
+      </div>
+
+      <div class="footer" style="margin-top:14px;">
+        侵权投诉请调用 API：POST /api/v1/complaints
+      </div>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
